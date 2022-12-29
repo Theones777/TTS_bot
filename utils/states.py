@@ -24,6 +24,7 @@ class CuratorsChecks(StatesGroup):
     waiting_for_num_words = State()
     waiting_for_file = State()
     waiting_for_word = State()
+    waiting_for_specific_word = State()
     waiting_for_indexes = State()
 
 

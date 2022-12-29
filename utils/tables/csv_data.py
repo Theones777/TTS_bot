@@ -14,12 +14,53 @@ from utils.variables import TMP_ARC_PATH, AVAIL_AUDIO_PROJECTS_NAMES, LONG_AUDIO
     TMP_DOWNLOAD_PATH, IDX_FILENAME_COL, AVAIL_TXT_PROJECTS_NAMES, CURATOR_HOMOGRAPH_CSV, \
     YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH, CURATOR_YOMOGRAPH_CSV, YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH, \
     MARKERS_SOUND_CSV, DICTORS_TEXTS_PATH, \
-    YD_ROOT_DICTORS_DONE_AUDIOS_PATH, DICTORS_TABLE_NAME, DICTORS_WORKSHEET_NAME
+    YD_ROOT_DICTORS_DONE_AUDIOS_PATH, DICTORS_TABLE_NAME, DICTORS_WORKSHEET_NAME, YD_DONE_ACCEPTED_HOMOGRAPHS_PATH, \
+    YD_DONE_ACCEPTED_YOMOGRAPHS_PATH
 from utils.yd_dir.yd_download import simple_download, download_audio_files_from_yd
 from utils.yd_dir.yd_init import y_disk
 from utils.yd_dir.yd_upload import upload_to_yd
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
+
+
+def get_specific_word(message, curator_id, project_name):
+    word = message.text
+    if project_name in AVAIL_TXT_PROJECTS_NAMES[:2]:
+        csv_path = CURATOR_HOMOGRAPH_CSV
+        dones_path = YD_DONE_ACCEPTED_HOMOGRAPHS_PATH
+        dones_path2 = YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH
+    else:
+        csv_path = CURATOR_YOMOGRAPH_CSV
+        dones_path = YD_DONE_ACCEPTED_YOMOGRAPHS_PATH
+        dones_path2 = YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH
+
+    df = pd.read_csv(csv_path)
+    if len(df.loc[df['file_name'].str.contains(word.replace('+', '\+')), 'file_name'].tolist()) == 0:
+        for f in y_disk.listdir(dones_path2):
+            if f.name not in df['file_name'].tolist():
+                df = df.append({'file_name': f.name,
+                                'upload_date': f.created,
+                                'curator_id': 'none'}, ignore_index=True)
+        for f in y_disk.listdir(dones_path):
+            if f.name not in df['file_name'].tolist():
+                df = df.append({'file_name': f.name,
+                                'upload_date': f.created,
+                                'curator_id': 'none'}, ignore_index=True)
+        try:
+            df.sort_values('upload_date', ascending=True, inplace=True, ignore_index=True)
+        except:
+            pass
+        df.to_csv(csv_path, index=False)
+    file_name = df.loc[df['file_name'].str.contains(word.replace('+', '\+')), 'file_name'].tolist()[0]
+    logging(message, file_name)
+    try:
+        simple_download(f'{dones_path}/{file_name}', os.path.join(TMP_ARC_PATH, file_name))
+    except:
+        simple_download(f'{dones_path2}/{file_name}', os.path.join(TMP_ARC_PATH, file_name))
+    df.loc[df['file_name'] == file_name, 'curator_id'] = curator_id
+    df.to_csv(csv_path, index=False)
+
+    return os.path.join(TMP_ARC_PATH, file_name)
 
 
 def get_curator_words(message, curator_id, project_name):

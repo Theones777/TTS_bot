@@ -9,7 +9,7 @@ from utils.bot_init import bot
 from utils.checks.curators_check import enter_curator_data, get_tg_user_id
 from utils.log import logging
 from utils.states import CuratorsChecks
-from utils.tables.csv_data import get_curator_words
+from utils.tables.csv_data import get_curator_words, get_specific_word
 from utils.variables import AVAIL_TXT_PROJECTS_NAMES, CURATORS_CHAT_ID, MARKERS_NAMES_AND_TIMETABLES, CURATOR_TASKS, \
     SUM_PROFILES, TMP_DOWNLOAD_PATH
 from utils.yd_dir.yd_upload import upload_to_yd
@@ -34,13 +34,16 @@ async def curator_task_chosen(message: types.Message, state: FSMContext):
     if message.text == CURATOR_TASKS[0]:
         await state.set_state(CuratorsChecks.waiting_for_num_words.state)
         await message.answer("Сколько слов хотите проверить", reply_markup=types.ReplyKeyboardRemove())
+    elif message.text == CURATOR_TASKS[1]:
+        await state.set_state(CuratorsChecks.waiting_for_specific_word.state)
+        await message.answer("Введите необходимое слово", reply_markup=types.ReplyKeyboardRemove())
     elif message.text == CURATOR_TASKS[2]:
+        await state.set_state(CuratorsChecks.waiting_for_word.state)
+        await message.answer("Введите проверяемое слово (как в таблице)", reply_markup=types.ReplyKeyboardRemove())
+    else:
         await state.set_state(CuratorsChecks.waiting_for_file.state)
         await message.answer('Загрузите файлы (поставьте галочку "Группировать"',
                              reply_markup=types.ReplyKeyboardRemove())
-    else:
-        await state.set_state(CuratorsChecks.waiting_for_word.state)
-        await message.answer("Введите проверяемое слово (как в таблице)", reply_markup=types.ReplyKeyboardRemove())
 
 
 async def curator_num_words_inserted(message: types.Message, state: FSMContext):
@@ -79,6 +82,22 @@ async def word_inserted(message: types.Message, state: FSMContext):
     await message.answer("Введите результаты проверки в формате \nномер строки - категория ошибки shift+enter")
 
 
+async def specific_word_inserted(message: types.Message, state: FSMContext):
+    logging(message)
+    curator_id = SUM_PROFILES[str(message.from_user.id)]
+    user_data = await state.get_data()
+    project_name = user_data['chosen_project']
+    try:
+        file_path = get_specific_word(message, curator_id, project_name)
+        file = InputFile(file_path)
+        await message.reply_document(file, reply=False)
+        os.remove(file_path)
+    except Exception as e:
+        logging(message, str(e))
+        await message.answer("Ошибка выдачи документа", reply_markup=types.ReplyKeyboardRemove())
+    await state.finish()
+
+
 async def indexes_inserted(message: types.Message, state: FSMContext):
     logging(message)
     user_data = await state.get_data()
@@ -102,4 +121,5 @@ def register_handlers_curators(dp: Dispatcher):
     dp.register_message_handler(curator_file_upload, content_types=[types.ContentType.DOCUMENT],
                                 state=CuratorsChecks.waiting_for_file)
     dp.register_message_handler(word_inserted, state=CuratorsChecks.waiting_for_word)
+    dp.register_message_handler(specific_word_inserted, state=CuratorsChecks.waiting_for_specific_word)
     dp.register_message_handler(indexes_inserted, state=CuratorsChecks.waiting_for_indexes)
