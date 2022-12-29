@@ -161,7 +161,8 @@ def enter_audio_data(message, user_id, project_name):
 
                 csvfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
                 if marked_texts[txt_idx] != \
-                        marker_df.loc[marker_df['file_name'] == csvfilename, 'original_text'].tolist()[0]:
+                        marker_df.loc[marker_df['file_name'] == csvfilename, 'original_text'].tolist()[0].replace(
+                            f'{new_idx} ', ''):
                     marker_df.loc[marker_df['file_name'] == csvfilename, 'marked_text'] = marked_texts[txt_idx]
                     if status:
                         status += '_corrected'
