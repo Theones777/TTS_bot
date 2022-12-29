@@ -21,6 +21,7 @@ async def project_chosen(message: types.Message, state: FSMContext):
     if message.text in AVAIL_TXT_PROJECTS_NAMES:
         await message.answer("Сколько слов хотите разметить?", reply_markup=types.ReplyKeyboardRemove())
     elif message.text in AVAIL_AUDIO_PROJECTS_NAMES:
+        await message.answer("Загрузка аудио...", reply_markup=types.ReplyKeyboardRemove())
         marker_id = SUM_PROFILES[str(message.from_user.id)]
         arc_path = get_audio_data(message, marker_id)
         arc = InputFile(arc_path)

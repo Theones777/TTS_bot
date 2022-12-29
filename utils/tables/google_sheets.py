@@ -10,7 +10,6 @@ from utils.variables import HOMO_TABLE_NAME, GOOGLE_SHEET_JSON_PATH, TMP_ARC_PAT
     AVAIL_TXT_PROJECTS_NAMES, HOMOGRAPHS_COORDINATES, YOMO_TABLE_NAME, YOMOGRAPHS_COORDINATES, CURATORS_TABLE_NAME, \
     CURATORS_COORDINATES, MARKERS_NAMES_AND_TIMETABLES, TIMETABLE_LIST, TIMETABLE_MISTAKES_COL
 from utils.yd_dir.yd_download import yd_doc_download
-from utils.yd_dir.yd_init import FLAG
 from utils.yd_dir.yd_upload import move_file_to_yd
 
 gc = gspread.service_account(filename=GOOGLE_SHEET_JSON_PATH)
@@ -228,7 +227,7 @@ def enter_markup_data(message, marker_id, project_name, sample_nums_info):
                     else:
                         mark_done = 'hard'
 
-                    out_str += move_file_to_yd(message, project_name, f'{sample}.txt', sample, FLAG, marker_id,
+                    out_str += move_file_to_yd(message, project_name, f'{sample}.txt', sample, marker_id,
                                                mark_done, prev_marker_id) + '\n'
                     worksheet.update_cell(cell.row, HOMOGRAPHS_COORDINATES['add_col'], sample_count)
                 else:
@@ -263,7 +262,7 @@ def enter_markup_data(message, marker_id, project_name, sample_nums_info):
                     prev_marker_id = worksheet.cell(cell.row, HOMOGRAPHS_COORDINATES['marker_id']).value
 
                     done_insert_value += add_sample_count
-                    out_str += move_file_to_yd(message, project_name, f'{sample}.txt', sample, FLAG, marker_id, 'done',
+                    out_str += move_file_to_yd(message, project_name, f'{sample}.txt', sample, marker_id, 'done',
                                                prev_marker_id) + '\n'
                     worksheet.update_cell(cell.row, HOMOGRAPHS_COORDINATES['add_markup_nums'], add_sample_count)
 
@@ -303,7 +302,7 @@ def enter_markup_data(message, marker_id, project_name, sample_nums_info):
                     prev_marker_id = worksheet.cell(cell.row, YOMOGRAPHS_COORDINATES['marker_id']).value
 
                     done_insert_value += add_sample_count
-                    out_str += move_file_to_yd(message, project_name, f'{sample}.txt', sample, FLAG, marker_id, 'done',
+                    out_str += move_file_to_yd(message, project_name, f'{sample}.txt', sample, marker_id, 'done',
                                                prev_marker_id) + '\n'
                     worksheet.update_cell(cell.row, YOMOGRAPHS_COORDINATES['add_markup_nums'], add_sample_count)
 

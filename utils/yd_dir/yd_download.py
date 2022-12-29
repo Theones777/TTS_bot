@@ -4,7 +4,7 @@ import shutil
 from utils.log import logging
 from utils.variables import AVAIL_TXT_PROJECTS_NAMES, YD_HARD_HOMOGRAPHS_PATH, YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH, \
     YD_HARD_YOMOGRAPHS_PATH, YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH, TMP_DOWNLOAD_PATH, YD_BACKUP_PATH, TMP_ARC_PATH, \
-    YD_ROOT_DICTORS_RAW_AUDIOS_PATH, SOUND_MEN_PROFILES, YD_ROOT_DICTORS_CUTTED_AUDIOS_PATH, MARKERS_PROFILES
+    YD_ROOT_DICTORS_RAW_AUDIOS_PATH
 from utils.yd_dir.yd_init import y_disk
 
 
@@ -61,12 +61,7 @@ def simple_download(inp_path, out_path):
 
 
 def download_audio_files_from_yd(wav_path, user_id, dictor_name, text_type, wav_name):
-    if user_id in SOUND_MEN_PROFILES.values():
-        root_yd_path = YD_ROOT_DICTORS_RAW_AUDIOS_PATH
-    elif user_id in MARKERS_PROFILES.values():
-        root_yd_path = YD_ROOT_DICTORS_CUTTED_AUDIOS_PATH
-
-    source_path = f'{root_yd_path}/{wav_path}'
+    source_path = f'{YD_ROOT_DICTORS_RAW_AUDIOS_PATH}/{wav_path}'
     res_path = os.path.join(TMP_DOWNLOAD_PATH, user_id, dictor_name, text_type)
     os.makedirs(res_path, exist_ok=True)
     y_disk.download(source_path, os.path.join(res_path, wav_name))
