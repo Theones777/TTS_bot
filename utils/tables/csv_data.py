@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import shutil
 import warnings
 import zipfile
@@ -112,75 +113,71 @@ def get_audio_data(message, user_id):
     return arc_path
 
 
-def enter_audio_data(message, user_id, project_name, add_component):
+def enter_audio_data(message, user_id, project_name):
     out_str = ''
     if project_name == AVAIL_AUDIO_PROJECTS_NAMES[0]:
         files_path = os.path.join(TMP_DOWNLOAD_PATH, user_id, 'unzip_files')
-        os.makedirs(files_path, exist_ok=True)
-        if type(add_component) == str:
-            with zipfile.ZipFile(add_component) as zf:
-                zf.extractall(files_path)
-            flag = 'sound_man'
-            csv_path = LONG_AUDIOS_CSV
-            yd_root_path = YD_ROOT_DICTORS_CUTTED_AUDIOS_PATH
-        else:
-            flag = 'marker'
-            csv_path = MARKERS_SOUND_CSV
-            yd_root_path = YD_ROOT_DICTORS_DONE_AUDIOS_PATH
+        today = datetime.datetime.today().isoformat(sep=" ").split(' ')[0]
+        upload_date = '.'.join([today.split('-')[2], today.split('-')[1], today.split('-')[0]])
 
-        df = pd.read_csv(csv_path)
-        if flag == 'sound_man':
-            for dictor_name in os.listdir(files_path):
-                dictors_dirs = [dd.name for dd in y_disk.listdir(yd_root_path)]
-                if dictor_name not in dictors_dirs:
-                    y_disk.mkdir(f'{yd_root_path}/{dictor_name}')
-                for text_type in os.listdir(os.path.join(files_path, dictor_name)):
-                    text_type_dirs = [ttd.name for ttd in y_disk.listdir(f'{yd_root_path}/{dictor_name}')]
-                    if text_type not in text_type_dirs:
-                        y_disk.mkdir(f'{yd_root_path}/{dictor_name}/{text_type}')
-                    for filename in os.listdir(os.path.join(files_path, dictor_name, text_type)):
-                        if filename.endswith('.wav'):
-                            logging(message, filename)
-                            out_str += upload_to_yd(project_name,
-                                                    os.path.join(files_path, dictor_name, text_type, filename),
-                                                    f'{dictor_name}/{text_type}/{filename}', flag)[0]
-                            logging(message, f'{filename} загружен успешно')
-                        else:
-                            df.loc[df['file_name'] == f'{dictor_name}/{text_type}/{filename.replace(".txt", ".wav")}',
-                                   'status'] = 'done'
+        dictor_name = os.listdir(files_path)[0].split('_')[0]
+        text_type = os.listdir(files_path)[0].split('_')[1]
+        dictors_dirs = [dd.name for dd in y_disk.listdir(YD_ROOT_DICTORS_DONE_AUDIOS_PATH)]
+        if dictor_name not in dictors_dirs:
+            y_disk.mkdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}')
+        text_type_dirs = [ttd.name for ttd in y_disk.listdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}')]
+        if text_type not in text_type_dirs:
+            y_disk.mkdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}/{text_type}')
 
-        else:
-            today = datetime.datetime.today().isoformat(sep=" ").split(' ')[0]
-            upload_date = '.'.join([today.split('-')[2], today.split('-')[1], today.split('-')[0]])
-            dictors = set([fl.split('_')[0] for fl in os.listdir(files_path)])
-            text_types = set([fl.split('_')[1] for fl in os.listdir(files_path)])
-            dictors_dirs = [dd.name for dd in y_disk.listdir(yd_root_path)]
-            for dictor_name in dictors:
-                if dictor_name not in dictors_dirs:
-                    y_disk.mkdir(f'{yd_root_path}/{dictor_name}')
-                text_type_dirs = [ttd.name for ttd in y_disk.listdir(f'{yd_root_path}/{dictor_name}')]
-                for text_type in text_types:
-                    if text_type not in text_type_dirs:
-                        y_disk.mkdir(f'{yd_root_path}/{dictor_name}/{text_type}')
+        long_df = pd.read_csv(LONG_AUDIOS_CSV)
+        marker_df = pd.read_csv(MARKERS_SOUND_CSV)
+        txt_file = [f for f in os.listdir(files_path) if f.endswith('.txt')][0]
+        long_df.loc[
+            long_df['file_name'] == f'{dictor_name}/{text_type}/{txt_file.split("_")[2].replace(".txt", ".wav")}',
+            'status'] = 'done'
+        long_df.to_csv(LONG_AUDIOS_CSV, index=False)
+        with open(os.path.join(files_path, txt_file), encoding='utf-8') as f:
+            marked_texts = f.readlines()
+        for file in os.listdir(files_path):
+            if file.endswith('.wav'):
+                filename_elements = file.split('_')
+                dictor_dir = filename_elements[0]
+                text_type = filename_elements[1]
+                dictor_name = filename_elements[2]
 
-            for fl in [f for f in os.listdir(files_path) if f.endswith('.wav')]:
-                dictor_name = fl.split('_')[0]
-                text_type = fl.split('_')[1]
-                filename = '_'.join(fl.split('_')[2:])
+                tail = filename_elements[-1]
+                if re.findall('\d', tail):
+                    status = ''
+                    cut_num = int(tail.split('.')[0])
+                    indxs = filename_elements[-2]
+                else:
+                    status = tail.split('.')[0]
+                    cut_num = int(filename_elements[-2])
+                    indxs = filename_elements[-3]
+                st_idx = int(indxs.split('-')[0])
+                txt_idx = cut_num - 1
+                new_idx = st_idx + txt_idx
 
-                upload_result = upload_to_yd(project_name, os.path.join(files_path, fl),
-                                             f'{dictor_name}/{text_type}/{filename}', flag)
-                out_str += upload_result[0]
+                csvfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
+                if marked_texts[txt_idx] != \
+                        marker_df.loc[marker_df['file_name'] == csvfilename, 'original_text'].tolist()[0]:
+                    marker_df.loc[marker_df['file_name'] == csvfilename, 'marked_text'] = marked_texts[txt_idx]
+                    status += '_corrected'
+                if status:
+                    ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}_{status}.wav'
+                else:
+                    ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
 
-                if upload_result[1]:
-                    out_str += upload_to_yd(project_name, os.path.join(files_path, fl.replace('.wav', '.txt')),
-                                            f"{dictor_name}/{text_type}/{filename.replace('.wav', '.txt')}", flag)[0]
-                    with open(os.path.join(files_path, fl.replace('.wav', '.txt')), encoding='utf-8') as f:
-                        marked_text = f.read().strip()
+                logging(message, file)
+                out_str += upload_to_yd(project_name, os.path.join(files_path, file), ydfilename)[0]
+                logging(message, f'{ydfilename} загружен успешно')
 
-                    df.loc[df['file_name'] == f'{dictor_name}/{text_type}/{filename}', 'done_date'] = upload_date
-                    df.loc[df['file_name'] == f'{dictor_name}/{text_type}/{filename}', 'marked_text'] = marked_text
-                    df.loc[df['file_name'] == f'{dictor_name}/{text_type}/{filename}', 'status'] = 'done'
+                marker_df.loc[marker_df['file_name'] == csvfilename, 'done_date'] = upload_date
+                marker_df.loc[marker_df['file_name'] == csvfilename, 'status'] = 'done'
+                marker_df.loc[marker_df['file_name'] == csvfilename, 'file_name'] = ydfilename
 
-        df.to_csv(csv_path, index=False)
+        marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
+        timetable = gc.open(DICTORS_TABLE_NAME)
+        time_worksheet = timetable.worksheet(DICTORS_WORKSHEET_NAME)
+        set_with_dataframe(time_worksheet, marker_df)
     return out_str

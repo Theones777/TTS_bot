@@ -66,37 +66,36 @@ async def upload_docs(message: types.Message, state: FSMContext):
     logging(message)
     marker_id = SUM_PROFILES[str(message.from_user.id)]
     raw_file_name = message.document.file_name
+
+    user_data = await state.get_data()
+    project_name = user_data['chosen_project']
+    await message.answer('Идёт проверка файлов...', reply_markup=types.ReplyKeyboardRemove())
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    if project_name in AVAIL_TXT_PROJECTS_NAMES:
+        file_name = f"{raw_file_name.split('_')[0]}.txt"
+        keyboard.add('Получить информацию о возможных ошибках')
+
+    elif project_name in AVAIL_AUDIO_PROJECTS_NAMES:
+        file_name = raw_file_name
+        for button in ['Подтвердить загрузку', 'Отменить загрузку']:
+            keyboard.add(button)
+
+    download_file_path = os.path.join(TMP_DOWNLOAD_PATH, marker_id, file_name)
+    os.makedirs(os.path.join(TMP_DOWNLOAD_PATH, marker_id), exist_ok=True)
     # server_file = await bot.get_file(message.document.file_id)
     # print(server_file.file_path)
     # 'docker exec <container> rm -rf <YourFile>'
-    user_data = await state.get_data()
-    project_name = user_data['chosen_project']
-    if project_name in AVAIL_TXT_PROJECTS_NAMES:
-        file_name = f"{raw_file_name.split('_')[0]}.txt"
-        download_file_path = os.path.join(TMP_DOWNLOAD_PATH, marker_id, file_name)
-        os.makedirs(os.path.join(TMP_DOWNLOAD_PATH, marker_id), exist_ok=True)
-        await message.document.download(destination_file=download_file_path)
+    await message.document.download(destination_file=download_file_path)
 
+    if project_name in AVAIL_TXT_PROJECTS_NAMES:
         await state.update_data({'marker_id': marker_id})
         await state.set_state(UploadProjects.waiting_for_report.state)
-
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add('Получить информацию о возможных ошибках')
         await message.answer(f"Файл {file_name} на проверке", reply_markup=keyboard)
 
     elif project_name in AVAIL_AUDIO_PROJECTS_NAMES:
-        await message.answer('Идёт проверка файлов...', reply_markup=types.ReplyKeyboardRemove())
-        file_name = raw_file_name
-        download_file_path = os.path.join(TMP_DOWNLOAD_PATH, marker_id, file_name)
-        os.makedirs(os.path.join(TMP_DOWNLOAD_PATH, marker_id), exist_ok=True)
-        await message.document.download(destination_file=download_file_path)
-
         check_report, samples_nums = check_input_files(download_file_path, marker_id, flag='audio')
         await state.update_data({'samples_nums': samples_nums})
         await state.set_state(UploadProjects.waiting_for_confirm.state)
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        for button in ['Подтвердить загрузку', 'Отменить загрузку']:
-            keyboard.add(button)
         await message.answer(check_report, reply_markup=keyboard)
 
 
@@ -123,8 +122,8 @@ async def confirm_upload(message: types.Message, state: FSMContext):
     conclusion = message.text
     marker_id = SUM_PROFILES[str(message.from_user.id)]
 
-    await message.answer('Загрузка начата...', reply_markup=types.ReplyKeyboardRemove())
     if conclusion == 'Подтвердить загрузку':
+        await message.answer('Загрузка начата...', reply_markup=types.ReplyKeyboardRemove())
         project_name = user_data['chosen_project']
         samples_nums_dict = user_data.get('samples_nums_dict')
         samples_nums = user_data.get('samples_nums')
@@ -132,7 +131,7 @@ async def confirm_upload(message: types.Message, state: FSMContext):
         if project_name in AVAIL_TXT_PROJECTS_NAMES:
             out_str = enter_markup_data(message, marker_id, project_name, sample_nums_info)
         else:
-            out_str = enter_audio_data(message, marker_id, project_name, sample_nums_info)
+            out_str = enter_audio_data(message, marker_id, project_name)
         await message.answer(out_str, reply_markup=types.ReplyKeyboardRemove())
     else:
         await message.answer('Загрузка отменена', reply_markup=types.ReplyKeyboardRemove())

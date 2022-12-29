@@ -73,7 +73,7 @@ def upload_to_yd(project_name, download_file_path, file_name):
     except yadisk.exceptions.PathExistsError:
         try:
             y_disk.upload(download_file_path, f'{YD_ROOT_DICTORS_RESERVE_AUDIOS_PATH}/{file_name}')
-            out_str += f'{file_name} загружен в запас\n'
+            out_str += f'{file_name} загружен в резерв\n'
         except:
             out_str += f'{file_name} уже загружен!\n'
         os.remove(download_file_path)
