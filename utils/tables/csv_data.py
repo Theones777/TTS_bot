@@ -1,6 +1,7 @@
 import datetime
 import os
 import shutil
+import warnings
 import zipfile
 
 import pandas as pd
@@ -16,6 +17,8 @@ from utils.variables import TMP_ARC_PATH, AVAIL_AUDIO_PROJECTS_NAMES, LONG_AUDIO
 from utils.yd_dir.yd_download import simple_download, download_audio_files_from_yd
 from utils.yd_dir.yd_init import y_disk
 from utils.yd_dir.yd_upload import upload_to_yd
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 def get_curator_words(message, curator_id, project_name):
@@ -90,7 +93,7 @@ def get_audio_data(message, user_id):
             myzip.write(txt_name, arcname=f"{dictor_name}_{text_type}_{wav_name.replace('.wav', '.txt')}")
 
         marker_df = pd.read_csv(MARKERS_SOUND_CSV)
-        for text_i, i in enumerate(range(start_idx+1, end_idx+1)):
+        for text_i, i in enumerate(range(start_idx + 1, end_idx + 1)):
             new_wav_name = f'{wav_name.split("_")[0]}_{i}.wav'
             marker_df = marker_df.append({'file_name': f'{dictor_name}/{text_type}/{new_wav_name}',
                                           'status': 'in_process',

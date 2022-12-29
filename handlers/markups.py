@@ -25,7 +25,7 @@ async def project_chosen(message: types.Message, state: FSMContext):
         marker_id = SUM_PROFILES[str(message.from_user.id)]
         arc_path = get_audio_data(message, marker_id)
         arc = InputFile(arc_path)
-        await message.reply_document(arc, reply_markup=types.ReplyKeyboardRemove())
+        await message.reply_document(arc, reply_markup=types.ReplyKeyboardRemove(), reply=False)
         os.remove(arc_path)
         await state.finish()
 

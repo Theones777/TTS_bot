@@ -5,6 +5,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InputFile
 
+from utils.bot_init import bot
 from utils.checks.check import check_input_files
 from utils.tables.csv_data import enter_audio_data
 from utils.tables.google_sheets import enter_markup_data, insert_null_words
@@ -65,6 +66,9 @@ async def upload_docs(message: types.Message, state: FSMContext):
     logging(message)
     marker_id = SUM_PROFILES[str(message.from_user.id)]
     raw_file_name = message.document.file_name
+    # server_file = await bot.get_file(message.document.file_id)
+    # print(server_file.file_path)
+    # 'docker exec <container> rm -rf <YourFile>'
     user_data = await state.get_data()
     project_name = user_data['chosen_project']
     if project_name in AVAIL_TXT_PROJECTS_NAMES:
@@ -79,6 +83,7 @@ async def upload_docs(message: types.Message, state: FSMContext):
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         keyboard.add('Получить информацию о возможных ошибках')
         await message.answer(f"Файл {file_name} на проверке", reply_markup=keyboard)
+
     elif project_name in AVAIL_AUDIO_PROJECTS_NAMES:
         await message.answer('Идёт проверка файлов...', reply_markup=types.ReplyKeyboardRemove())
         file_name = raw_file_name
