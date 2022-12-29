@@ -133,7 +133,8 @@ def enter_audio_data(message, user_id, project_name):
         marker_df = pd.read_csv(MARKERS_SOUND_CSV)
         txt_file = [f for f in os.listdir(files_path) if f.endswith('.txt')][0]
         long_df.loc[
-            long_df['file_name'] == f'{dictor_name}/{text_type}/{txt_file.split("_")[2].replace(".txt", ".wav")}',
+            long_df[
+                'file_name'] == f'{dictor_name}/{text_type}/{"_".join(txt_file.split("_")[2:]).replace(".txt", ".wav")}',
             'status'] = 'done'
         long_df.to_csv(LONG_AUDIOS_CSV, index=False)
         with open(os.path.join(files_path, txt_file), encoding='utf-8') as f:
@@ -162,7 +163,10 @@ def enter_audio_data(message, user_id, project_name):
                 if marked_texts[txt_idx] != \
                         marker_df.loc[marker_df['file_name'] == csvfilename, 'original_text'].tolist()[0]:
                     marker_df.loc[marker_df['file_name'] == csvfilename, 'marked_text'] = marked_texts[txt_idx]
-                    status += '_corrected'
+                    if status:
+                        status += '_corrected'
+                    else:
+                        status += 'corrected'
                 if status:
                     ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}_{status}.wav'
                 else:
