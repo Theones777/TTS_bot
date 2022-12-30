@@ -34,7 +34,7 @@ async def project_chosen(message: types.Message, state: FSMContext):
         await message.answer("Теперь загрузите файлы (поставьте галочку 'Группировать')",
                              reply_markup=types.ReplyKeyboardRemove())
     elif message.text == AVAIL_AUDIO_PROJECTS_NAMES[0]:
-        await message.answer("Теперь загрузите zip-архив с файлами",
+        await message.answer("Теперь загрузите zip-архив с файлами (в имени архива не должно быть пробелов)",
                              reply_markup=types.ReplyKeyboardRemove())
 
 

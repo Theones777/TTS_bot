@@ -124,26 +124,21 @@ def get_audio_data(message, user_id):
 
             with open(os.path.join(DICTORS_TEXTS_PATH, f'{text_type}.txt'), encoding='utf-8') as f:
                 common_text = f.readlines()
-            if common_text[0][0] == 0:
-                start_idx = int(wav_name.split('_')[1].split('-')[0])
-                end_idx = int(wav_name.split('_')[1].split('-')[1].split('.')[0]) + 1
-                range_start = start_idx
-                range_end = end_idx
-            else:
-                start_idx = int(wav_name.split('_')[1].split('-')[0]) - 1
-                end_idx = int(wav_name.split('_')[1].split('-')[1].split('.')[0])
-                range_start = start_idx + 1
-                range_end = end_idx + 1
-            text = common_text[start_idx:end_idx]
+
+            start_idx = int(wav_name.split('_')[1].split('-')[0]) - 1
+            end_idx = int(wav_name.split('_')[1].split('-')[1].split('.')[0])
+            with open(os.path.join(DICTORS_TEXTS_PATH, f'{text_type}.txt'), encoding='utf-8') as f:
+                common_text = f.readlines()
+                text = common_text[start_idx:end_idx]
 
             txt_name = os.path.join(TMP_DOWNLOAD_PATH, user_id, dictor_name, text_type,
                                     wav_name.replace('.wav', '.txt'))
             with open(txt_name, 'w', encoding='utf-8') as f:
                 f.writelines(text)
             myzip.write(txt_name, arcname=f"{dictor_name}_{text_type}_{wav_name.replace('.wav', '.txt')}")
-
+        
         marker_df = pd.read_csv(MARKERS_SOUND_CSV)
-        for text_i, i in enumerate(range(range_start, range_end)):
+        for text_i, i in enumerate(range(start_idx + 1, end_idx + 1)):
             new_wav_name = f'{wav_name.split("_")[0]}_{i}.wav'
             marker_df = marker_df.append({'file_name': f'{dictor_name}/{text_type}/{new_wav_name}',
                                           'status': 'in_process',
