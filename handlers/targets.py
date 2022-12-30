@@ -4,7 +4,8 @@ from aiogram.dispatcher import FSMContext
 from utils.log import logging
 from utils.states import *
 from utils.variables import AVAIL_TARGET_NAMES, AVAIL_TXT_PROJECTS_NAMES, CURATORS_PROFILES, SUM_PROFILES, \
-    CURATORS_BUTTON, SOUND_MEN_PROFILES, SOUND_MAN_BUTTON, MARKERS_PROFILES, AVAIL_AUDIO_PROJECTS_NAMES
+    CURATORS_BUTTON, SOUND_MEN_PROFILES, SOUND_MAN_BUTTON, MARKERS_PROFILES, AVAIL_AUDIO_PROJECTS_NAMES, \
+    AVAIL_CURATORS_PROJECTS
 
 
 async def bot_start(message: types.Message, state: FSMContext):
@@ -15,8 +16,6 @@ async def bot_start(message: types.Message, state: FSMContext):
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         if str(message.from_user.id) in CURATORS_PROFILES.keys():
             keyboard.add(CURATORS_BUTTON)
-        if str(message.from_user.id) in SOUND_MEN_PROFILES.keys():
-            keyboard.add(SOUND_MAN_BUTTON)
         if str(message.from_user.id) in MARKERS_PROFILES.keys():
             for name in AVAIL_TARGET_NAMES:
                 keyboard.add(name)
@@ -42,7 +41,7 @@ async def target_chosen(message: types.Message, state: FSMContext):
         await state.set_state(UploadProjects.waiting_for_project_name.state)
 
     elif target_name == CURATORS_BUTTON:
-        for name in AVAIL_TXT_PROJECTS_NAMES:
+        for name in AVAIL_CURATORS_PROJECTS:
             keyboard.add(name)
         await message.answer("Выберите проект для проверки", reply_markup=keyboard)
         await state.set_state(CuratorsChecks.waiting_for_project_name.state)

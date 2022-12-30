@@ -10,14 +10,14 @@ from utils.checks.curators_check import enter_curator_data, get_tg_user_id
 from utils.log import logging
 from utils.states import CuratorsChecks
 from utils.tables.csv_data import get_curator_words, get_specific_word
-from utils.variables import AVAIL_TXT_PROJECTS_NAMES, CURATORS_CHAT_ID, MARKERS_NAMES_AND_TIMETABLES, CURATOR_TASKS, \
-    SUM_PROFILES, TMP_DOWNLOAD_PATH
+from utils.variables import CURATORS_CHAT_ID, MARKERS_NAMES_AND_TIMETABLES, CURATOR_TASKS, \
+    SUM_PROFILES, TMP_DOWNLOAD_PATH, AVAIL_CURATORS_PROJECTS
 from utils.yd_dir.yd_upload import upload_to_yd
 
 
 async def project_chosen(message: types.Message, state: FSMContext):
     logging(message)
-    if message.text not in AVAIL_TXT_PROJECTS_NAMES:
+    if message.text not in AVAIL_CURATORS_PROJECTS:
         await message.answer("Пожалуйста, выберите проект, используя клавиатуру ниже.")
         return
     await state.update_data(chosen_project=message.text)

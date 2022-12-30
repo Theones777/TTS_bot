@@ -75,8 +75,10 @@ def check_file(path_file_markup, filename, flag):
 
             if change_count != 0:
                 errors.append('Найдено лишних пробелов: ' + str(change_count))
-            # if len(errors) > 2:
-            out_str += ', '.join(errors) + '\n'
+            if len(errors) > 1:
+                out_str += ', '.join(errors) + '\n'
+            else:
+                out_str += 'Ошибок не обнаружено\n'
 
         idx_string_in_file += 1
     return out_str, num_samples

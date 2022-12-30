@@ -8,7 +8,7 @@ from utils.log import logging
 from utils.variables import AVAIL_TXT_PROJECTS_NAMES, YD_HARD_HOMOGRAPHS_PATH, YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH, \
     YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH, YD_HARD_YOMOGRAPHS_PATH, TMP_DOWNLOAD_PATH, USER_BACKUP_PATH, \
     YD_DONE_ACCEPTED_HOMOGRAPHS_PATH, YD_DONE_ACCEPTED_YOMOGRAPHS_PATH, AVAIL_AUDIO_PROJECTS_NAMES, \
-    YD_ROOT_DICTORS_DONE_AUDIOS_PATH, YD_ROOT_DICTORS_RESERVE_AUDIOS_PATH
+    YD_ROOT_DICTORS_DONE_AUDIOS_PATH, YD_ROOT_DICTORS_RESERVE_AUDIOS_PATH, AVAIL_CURATORS_PROJECTS
 from utils.yd_dir.yd_init import y_disk
 
 
@@ -57,9 +57,9 @@ def move_file_to_yd(message, project_name, file_name, sample, marker_id, mark_do
 
 def upload_to_yd(project_name, download_file_path, file_name):
     out_str = ''
-    if project_name in AVAIL_TXT_PROJECTS_NAMES[:2]:
+    if project_name == AVAIL_CURATORS_PROJECTS[0]:
         dones_path = f'{YD_DONE_ACCEPTED_HOMOGRAPHS_PATH}/{file_name}'
-    elif project_name == AVAIL_TXT_PROJECTS_NAMES[2]:
+    elif project_name == AVAIL_CURATORS_PROJECTS[1]:
         dones_path = f'{YD_DONE_ACCEPTED_YOMOGRAPHS_PATH}/{file_name}'
     elif project_name == AVAIL_AUDIO_PROJECTS_NAMES[0]:
         dones_path = f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{file_name}'

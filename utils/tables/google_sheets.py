@@ -8,7 +8,7 @@ import gspread
 from utils.log import logging
 from utils.variables import HOMO_TABLE_NAME, GOOGLE_SHEET_JSON_PATH, TMP_ARC_PATH, \
     AVAIL_TXT_PROJECTS_NAMES, HOMOGRAPHS_COORDINATES, YOMO_TABLE_NAME, YOMOGRAPHS_COORDINATES, CURATORS_TABLE_NAME, \
-    CURATORS_COORDINATES, MARKERS_NAMES_AND_TIMETABLES, TIMETABLE_LIST, TIMETABLE_MISTAKES_COL
+    CURATORS_COORDINATES, MARKERS_NAMES_AND_TIMETABLES, TIMETABLE_LIST, TIMETABLE_MISTAKES_COL, AVAIL_CURATORS_PROJECTS
 from utils.yd_dir.yd_download import yd_doc_download
 from utils.yd_dir.yd_upload import move_file_to_yd
 
@@ -51,7 +51,7 @@ def insert_curator_info(info_to_insert, handle_mistakes_num, upload_date, page_m
 
 def get_marker_id(word, project_name):
     row = 0
-    if project_name in AVAIL_TXT_PROJECTS_NAMES[:2]:
+    if project_name == AVAIL_CURATORS_PROJECTS[0]:
         sh = gc.open(HOMO_TABLE_NAME)
         coordinates_table = HOMOGRAPHS_COORDINATES
     else:

@@ -15,7 +15,7 @@ from utils.variables import TMP_ARC_PATH, AVAIL_AUDIO_PROJECTS_NAMES, LONG_AUDIO
     YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH, CURATOR_YOMOGRAPH_CSV, YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH, \
     MARKERS_SOUND_CSV, DICTORS_TEXTS_PATH, \
     YD_ROOT_DICTORS_DONE_AUDIOS_PATH, DICTORS_TABLE_NAME, DICTORS_WORKSHEET_NAME, YD_DONE_ACCEPTED_HOMOGRAPHS_PATH, \
-    YD_DONE_ACCEPTED_YOMOGRAPHS_PATH
+    YD_DONE_ACCEPTED_YOMOGRAPHS_PATH, AVAIL_CURATORS_PROJECTS
 from utils.yd_dir.yd_download import simple_download, download_audio_files_from_yd
 from utils.yd_dir.yd_init import y_disk
 from utils.yd_dir.yd_upload import upload_to_yd
@@ -25,7 +25,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def get_specific_word(message, curator_id, project_name):
     word = message.text
-    if project_name in AVAIL_TXT_PROJECTS_NAMES[:2]:
+    if project_name == AVAIL_CURATORS_PROJECTS[0]:
         csv_path = CURATOR_HOMOGRAPH_CSV
         dones_path = YD_DONE_ACCEPTED_HOMOGRAPHS_PATH
         dones_path2 = YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH
@@ -67,7 +67,7 @@ def get_curator_words(message, curator_id, project_name):
     words_num = int(message.text)
     today = datetime.datetime.today().isoformat(sep=" ").split(' ')[0]
     arc_path = os.path.join(TMP_ARC_PATH, f'{today}_{curator_id}.zip')
-    if project_name in AVAIL_TXT_PROJECTS_NAMES[:2]:
+    if project_name == AVAIL_CURATORS_PROJECTS[0]:
         csv_path = CURATOR_HOMOGRAPH_CSV
         dones_path = YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH
     else:

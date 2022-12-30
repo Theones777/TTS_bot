@@ -4,7 +4,7 @@ import shutil
 from utils.log import logging
 from utils.variables import AVAIL_TXT_PROJECTS_NAMES, YD_HARD_HOMOGRAPHS_PATH, YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH, \
     YD_HARD_YOMOGRAPHS_PATH, YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH, TMP_DOWNLOAD_PATH, YD_BACKUP_PATH, TMP_ARC_PATH, \
-    YD_ROOT_DICTORS_RAW_AUDIOS_PATH
+    YD_ROOT_DICTORS_RAW_AUDIOS_PATH, AVAIL_CURATORS_PROJECTS
 from utils.yd_dir.yd_init import y_disk
 
 
@@ -14,7 +14,7 @@ def get_text(message, marker_id, add_markup_marker_id, status, word, project_nam
     else:
         file_name = f'{marker_id}_{word}_{status}.txt'
 
-    if project_name in AVAIL_TXT_PROJECTS_NAMES[:2]:
+    if project_name == AVAIL_CURATORS_PROJECTS[0]:
         if status == 'hard':
             finded_file = f'{YD_HARD_HOMOGRAPHS_PATH}/{file_name}'
         else:
