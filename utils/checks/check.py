@@ -31,6 +31,10 @@ def check_file(path_file_markup, filename, flag):
             else:
                 dup_idx = without_duplicates.index(string)
                 errors.append(f'Дубликат строки {dup_idx}')
+            if re.findall('[\?!,]\.', string.strip()):
+                errors.append('двойные знаки препинания')
+            if re.findall('\d', string.strip()):
+                errors.append('ненормализованные цифры')
         else:
             for i, proposal in enumerate(string.split('.')):
                 if '?' in proposal and '*' not in proposal:
@@ -40,24 +44,21 @@ def check_file(path_file_markup, filename, flag):
                     errors.append('нет ударения в слове')
 
         if len(string.strip()) > 0:
-            if re.findall('\d', string.strip()):
-                errors.append('ненормализованные цифры')
-            if re.findall('[a-zA-Z]', string.strip()):
-                errors.append('латиница')
-                latin_letters = re.findall('[a-zA-Z]', string.strip())
-                for latin_letter in latin_letters:
-                    latin_index_start = str(string.strip().index(latin_letter) + 1)
-                    latin_index_end = str(int(latin_index_start) + (len(latin_letter)))
-                    metastr = f'{latin_letter}: ({latin_index_start}-{latin_index_end})'
-                    errors.append(metastr)
+            if 'none_audio' not in string.strip():
+                if re.findall('[a-zA-Z]', string.strip()):
+                    errors.append('латиница')
+                    latin_letters = re.findall('[a-zA-Z]', string.strip())
+                    for latin_letter in latin_letters:
+                        latin_index_start = str(string.strip().index(latin_letter) + 1)
+                        latin_index_end = str(int(latin_index_start) + (len(latin_letter)))
+                        metastr = f'{latin_letter}: ({latin_index_start}-{latin_index_end})'
+                        errors.append(metastr)
             if re.findall('\. [а-я]', string.strip()):
                 errors.append('после точки маленькая буква')
             if re.findall(': [А-Я]', string.strip()):
                 errors.append('возможен обрыв контекста')
             if re.findall('[А-Я]{2,}', string.strip()):
                 errors.append('возможна аббревиатура')
-            if re.findall('[\?!,]\.', string.strip()):
-                errors.append('двойные знаки препинания')
             if re.findall('[\?!,\.][А-Яа-я]', string.strip()):
                 errors.append('отсутствует пробел после знака препинания')
 

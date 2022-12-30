@@ -11,7 +11,7 @@ from gspread_dataframe import set_with_dataframe
 from utils.log import logging
 from utils.tables.google_sheets import gc
 from utils.variables import TMP_ARC_PATH, AVAIL_AUDIO_PROJECTS_NAMES, LONG_AUDIOS_CSV, \
-    TMP_DOWNLOAD_PATH, IDX_FILENAME_COL, AVAIL_TXT_PROJECTS_NAMES, CURATOR_HOMOGRAPH_CSV, \
+    TMP_DOWNLOAD_PATH, IDX_FILENAME_COL, CURATOR_HOMOGRAPH_CSV, \
     YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH, CURATOR_YOMOGRAPH_CSV, YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH, \
     MARKERS_SOUND_CSV, DICTORS_TEXTS_PATH, \
     YD_ROOT_DICTORS_DONE_AUDIOS_PATH, DICTORS_TABLE_NAME, DICTORS_WORKSHEET_NAME, YD_DONE_ACCEPTED_HOMOGRAPHS_PATH, \
@@ -202,8 +202,7 @@ def enter_audio_data(message, user_id, project_name):
 
                 csvfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
                 if marked_texts[txt_idx] != \
-                        marker_df.loc[marker_df['file_name'] == csvfilename, 'original_text'].tolist()[0].replace(
-                            f'{new_idx} ', ''):
+                        marker_df.loc[marker_df['file_name'] == csvfilename, 'original_text'].tolist()[0]:
                     marker_df.loc[marker_df['file_name'] == csvfilename, 'marked_text'] = marked_texts[txt_idx]
                     if status:
                         status += '_corrected'
