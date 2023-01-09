@@ -38,10 +38,10 @@ def check_file(path_file_markup, filename, flag):
         else:
             for i, proposal in enumerate(string.split('.')):
                 if '?' in proposal and '*' not in proposal:
-                    errors.append('нет спецсимвола в вопросительном предложении')
+                    errors.append(f'нет спецсимвола в вопросительном предложении: {proposal}')
             for word in string.split(' '):
                 if re.findall(vowels, word) and '+' not in word:
-                    errors.append('нет ударения в слове')
+                    errors.append(f'нет ударения в слове: {word}')
 
         if len(string.strip()) > 0:
             if 'none_audio' not in string.strip():
