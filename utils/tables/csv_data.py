@@ -124,13 +124,18 @@ def get_audio_data(message, user_id):
 
             with open(os.path.join(DICTORS_TEXTS_PATH, f'{text_type}.txt'), encoding='utf-8') as f:
                 common_text = f.readlines()
+            if text_type in ['corpus', 'questions']:
+                start_idx = int(wav_name.split('_')[1].split('-')[0]) - 1
+                end_idx = int(wav_name.split('_')[1].split('-')[1].split('.')[0])
+                r_st = start_idx + 1
+                r_end = end_idx + 1
+            else:
+                start_idx = int(wav_name.split('_')[1].split('-')[0])
+                end_idx = int(wav_name.split('_')[1].split('-')[1].split('.')[0]) + 1
+                r_st = start_idx
+                r_end = end_idx
 
-            start_idx = int(wav_name.split('_')[1].split('-')[0]) - 1
-            end_idx = int(wav_name.split('_')[1].split('-')[1].split('.')[0])
-            with open(os.path.join(DICTORS_TEXTS_PATH, f'{text_type}.txt'), encoding='utf-8') as f:
-                common_text = f.readlines()
-                text = common_text[start_idx:end_idx]
-
+            text = common_text[start_idx:end_idx]
             txt_name = os.path.join(TMP_DOWNLOAD_PATH, user_id, dictor_name, text_type,
                                     wav_name.replace('.wav', '.txt'))
             with open(txt_name, 'w', encoding='utf-8') as f:
@@ -138,12 +143,13 @@ def get_audio_data(message, user_id):
             myzip.write(txt_name, arcname=f"{dictor_name}_{text_type}_{wav_name.replace('.wav', '.txt')}")
         
         marker_df = pd.read_csv(MARKERS_SOUND_CSV)
-        for text_i, i in enumerate(range(start_idx + 1, end_idx + 1)):
+        for text_i, i in enumerate(range(r_st, r_end)):
             new_wav_name = f'{wav_name.split("_")[0]}_{i}.wav'
             marker_df = marker_df.append({'file_name': f'{dictor_name}/{text_type}/{new_wav_name}',
                                           'status': 'in_process',
                                           'marker_id': user_id,
-                                          'original_text': text[text_i]}, ignore_index=True)
+                                          'original_text': text[text_i],
+                                          'curator_status': 'in_process'}, ignore_index=True)
 
         long_df.loc[long_df['file_name'] == wav_path, 'status'] = 'in_process'
         long_df.loc[long_df['file_name'] == wav_path, 'marker_id'] = user_id
@@ -222,6 +228,7 @@ def enter_audio_data(message, user_id, project_name):
 
                 marker_df.loc[marker_df['file_name'] == csvfilename, 'done_date'] = upload_date
                 marker_df.loc[marker_df['file_name'] == csvfilename, 'status'] = 'done'
+                marker_df.loc[marker_df['file_name'] == csvfilename, 'curator_status'] = 'На проверке'
                 marker_df.loc[marker_df['file_name'] == csvfilename, 'file_name'] = ydfilename
 
         marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
