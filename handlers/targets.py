@@ -4,8 +4,7 @@ from aiogram.dispatcher import FSMContext
 from utils.log import logging
 from utils.states import *
 from utils.variables import AVAIL_TARGET_NAMES, AVAIL_TXT_PROJECTS_NAMES, CURATORS_PROFILES, SUM_PROFILES, \
-    CURATORS_BUTTON, SOUND_MEN_PROFILES, SOUND_MAN_BUTTON, MARKERS_PROFILES, AVAIL_AUDIO_PROJECTS_NAMES, \
-    AVAIL_CURATORS_PROJECTS
+    CURATORS_BUTTON, MARKERS_PROFILES, AVAIL_AUDIO_PROJECTS_NAMES, AVAIL_CURATORS_PROJECTS
 
 
 async def bot_start(message: types.Message, state: FSMContext):

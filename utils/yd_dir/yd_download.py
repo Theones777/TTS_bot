@@ -25,6 +25,7 @@ def get_text(message, marker_id, add_markup_marker_id, status, word, project_nam
         else:
             finded_file = f'{YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH}/{file_name}'
 
+    os.makedirs(TMP_DOWNLOAD_PATH, exist_ok=True)
     y_disk.download(finded_file, os.path.join(TMP_DOWNLOAD_PATH, file_name))
     meta_date_info = y_disk.get_meta(finded_file).created
     upload_date = f'{meta_date_info.day}.{meta_date_info.month}.{meta_date_info.year}'
