@@ -142,19 +142,20 @@ def get_audio_data(message, user_id):
                 f.writelines(text)
             myzip.write(txt_name, arcname=f"{dictor_name}_{text_type}_{wav_name.replace('.wav', '.txt')}")
         
-        marker_df = pd.read_csv(MARKERS_SOUND_CSV)
         for text_i, i in enumerate(range(r_st, r_end)):
+            marker_df = pd.read_csv(MARKERS_SOUND_CSV)
             new_wav_name = f'{wav_name.split("_")[0]}_{i}.wav'
             marker_df = marker_df.append({'file_name': f'{dictor_name}/{text_type}/{new_wav_name}',
                                           'status': 'in_process',
                                           'marker_id': user_id,
                                           'original_text': text[text_i],
                                           'curator_status': 'in_process'}, ignore_index=True)
+            marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
 
         long_df.loc[long_df['file_name'] == wav_path, 'status'] = 'in_process'
         long_df.loc[long_df['file_name'] == wav_path, 'marker_id'] = user_id
         long_df.to_csv(LONG_AUDIOS_CSV, index=False)
-        marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
+        
         shutil.rmtree(TMP_DOWNLOAD_PATH)
 
         timetable = gc.open(DICTORS_TABLE_NAME)
@@ -180,7 +181,6 @@ def enter_audio_data(message, user_id, project_name):
             y_disk.mkdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}/{text_type}')
 
         long_df = pd.read_csv(LONG_AUDIOS_CSV)
-        marker_df = pd.read_csv(MARKERS_SOUND_CSV)
         txt_file = [f for f in os.listdir(files_path) if f.endswith('.txt')][0]
         long_df.loc[
             long_df[
@@ -191,6 +191,8 @@ def enter_audio_data(message, user_id, project_name):
             tmp_texts = f.readlines()
             marked_texts = [el for el in tmp_texts if el != '\n']
         for file in [f for f in os.listdir(files_path) if f.endswith('.wav')]:
+            marker_df = pd.read_csv(MARKERS_SOUND_CSV)
+
             filename_elements = file.split('_')
             dictor_dir = filename_elements[0]
             text_type = filename_elements[1]
@@ -233,8 +235,10 @@ def enter_audio_data(message, user_id, project_name):
             marker_df.loc[marker_df['file_name'] == csvfilename, 'curator_status'] = 'На проверке'
             marker_df.loc[marker_df['file_name'] == csvfilename, 'file_name'] = ydfilename
 
-        marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
+            marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
         timetable = gc.open(DICTORS_TABLE_NAME)
         time_worksheet = timetable.worksheet(DICTORS_WORKSHEET_NAME)
         set_with_dataframe(time_worksheet, marker_df)
+        if not out_str:
+            out_str = 'Все файлы загружены'
     return out_str
