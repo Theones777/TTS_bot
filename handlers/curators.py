@@ -108,7 +108,7 @@ async def indexes_inserted(message: types.Message, state: FSMContext):
     if marker_id:
         tg_id = get_tg_user_id(marker_id)
         marker_link = markdown.hlink(MARKERS_NAMES_AND_TIMETABLES.get(marker_id)[0], f'tg://user?id={tg_id}')
-        await bot.send_message(CURATORS_CHAT_ID, f'{marker_link}\n*{word}*\n{curator_result}',
+        await bot.send_message(CURATORS_CHAT_ID, f'{marker_link}\n/b{word}/b\n{curator_result}',
                                parse_mode="HTML", disable_web_page_preview=True)
     else:
         await message.answer(f'Ошибка! \n{curator_result}')

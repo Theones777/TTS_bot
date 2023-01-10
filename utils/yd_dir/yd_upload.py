@@ -68,14 +68,13 @@ def upload_to_yd(project_name, download_file_path, file_name):
         if download_file_path.endswith('txt'):
             convert_to_utf8(download_file_path)
         y_disk.upload(download_file_path, dones_path)
-        out_str += f'Файл {file_name} загружен на Яндекс диск\n'
         status = 1
     except yadisk.exceptions.PathExistsError:
         try:
             y_disk.upload(download_file_path, f'{YD_ROOT_DICTORS_RESERVE_AUDIOS_PATH}/{file_name}')
             out_str += f'{file_name} загружен в резерв\n'
         except:
-            out_str += f'{file_name} уже загружен!\n'
+            out_str += f'Ошибка загрузки {file_name}!\n'
         os.remove(download_file_path)
         status = 0
     return out_str,  status

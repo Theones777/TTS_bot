@@ -188,28 +188,28 @@ def enter_audio_data(message, user_id, project_name):
             'status'] = 'done'
         long_df.to_csv(LONG_AUDIOS_CSV, index=False)
         with open(os.path.join(files_path, txt_file), encoding='utf-8') as f:
-            marked_texts = f.readlines()
-        for file in os.listdir(files_path):
-            if file.endswith('.wav'):
-                filename_elements = file.split('_')
-                dictor_dir = filename_elements[0]
-                text_type = filename_elements[1]
-                dictor_name = filename_elements[2]
+            tmp_texts = f.readlines()
+            marked_texts = [el for el in tmp_texts if el != '\n']
+        for file in [f for f in os.listdir(files_path) if f.endswith('.wav')]:
+            filename_elements = file.split('_')
+            dictor_dir = filename_elements[0]
+            text_type = filename_elements[1]
+            dictor_name = filename_elements[2]
 
-                tail = filename_elements[-1]
-                if re.findall('\d', tail):
-                    status = ''
-                    cut_num = int(tail.split('.')[0])
-                    indxs = filename_elements[-2]
-                else:
-                    status = tail.split('.')[0]
-                    cut_num = int(filename_elements[-2])
-                    indxs = filename_elements[-3]
-                st_idx = int(indxs.split('-')[0])
-                txt_idx = cut_num - 1
-                new_idx = st_idx + txt_idx
+            cut_num = int(filename_elements[-1].split('.')[0])
+            indxs = filename_elements[-2]
 
-                csvfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
+            if re.findall('\d', filename_elements[3]):
+                status = ''
+            else:
+                status = filename_elements[3]
+
+            st_idx = int(indxs.split('-')[0])
+            txt_idx = cut_num - 1
+            new_idx = st_idx + txt_idx
+
+            csvfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
+            try:
                 if marked_texts[txt_idx] != \
                         marker_df.loc[marker_df['file_name'] == csvfilename, 'original_text'].tolist()[0]:
                     marker_df.loc[marker_df['file_name'] == csvfilename, 'marked_text'] = marked_texts[txt_idx]
@@ -217,19 +217,21 @@ def enter_audio_data(message, user_id, project_name):
                         status += '_corrected'
                     else:
                         status += 'corrected'
-                if status:
-                    ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}_{status}.wav'
-                else:
-                    ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
+            except:
+                pass
+            if status:
+                ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}_{status}.wav'
+            else:
+                ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
 
-                logging(message, file)
-                out_str += upload_to_yd(project_name, os.path.join(files_path, file), ydfilename)[0]
-                logging(message, f'{ydfilename} загружен успешно')
-
-                marker_df.loc[marker_df['file_name'] == csvfilename, 'done_date'] = upload_date
-                marker_df.loc[marker_df['file_name'] == csvfilename, 'status'] = 'done'
-                marker_df.loc[marker_df['file_name'] == csvfilename, 'curator_status'] = 'На проверке'
-                marker_df.loc[marker_df['file_name'] == csvfilename, 'file_name'] = ydfilename
+            logging(message, file)
+            out_str += upload_to_yd(project_name, os.path.join(files_path, file), ydfilename)[0]
+            logging(message, f'{ydfilename} загружен успешно')
+            
+            marker_df.loc[marker_df['file_name'] == csvfilename, 'done_date'] = upload_date
+            marker_df.loc[marker_df['file_name'] == csvfilename, 'status'] = 'done'
+            marker_df.loc[marker_df['file_name'] == csvfilename, 'curator_status'] = 'На проверке'
+            marker_df.loc[marker_df['file_name'] == csvfilename, 'file_name'] = ydfilename
 
         marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
         timetable = gc.open(DICTORS_TABLE_NAME)
