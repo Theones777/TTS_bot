@@ -80,4 +80,6 @@ def upload_to_yd(project_name, download_file_path, file_name):
             out_str += f'Ошибка загрузки {file_name}!\n'
         os.remove(download_file_path)
         status = 0
+    if not out_str:
+        out_str = 'Успешно'
     return out_str,  status
