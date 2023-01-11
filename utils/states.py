@@ -20,9 +20,13 @@ class UploadProjects(StatesGroup):
 
 class CuratorsChecks(StatesGroup):
     waiting_for_project_name = State()
+    waiting_for_dictor_name = State()
+    waiting_for_text_type = State()
+    waiting_for_long_audio = State()
     waiting_for_curator_task = State()
     waiting_for_num_words = State()
     waiting_for_file = State()
+    waiting_for_archive = State()
     waiting_for_word = State()
     waiting_for_specific_word = State()
     waiting_for_indexes = State()

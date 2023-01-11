@@ -164,81 +164,126 @@ def get_audio_data(message, user_id):
     return arc_path
 
 
-def enter_audio_data(message, user_id, project_name):
+def enter_audio_data(message, user_id, project_name, flag, file_path=''):
     out_str = ''
     if project_name == AVAIL_AUDIO_PROJECTS_NAMES[0]:
         files_path = os.path.join(TMP_DOWNLOAD_PATH, user_id, 'unzip_files')
         today = datetime.datetime.today().isoformat(sep=" ").split(' ')[0]
         upload_date = '.'.join([today.split('-')[2], today.split('-')[1], today.split('-')[0]])
 
-        dictor_name = os.listdir(files_path)[0].split('_')[0]
-        text_type = os.listdir(files_path)[0].split('_')[1]
-        dictors_dirs = [dd.name for dd in y_disk.listdir(YD_ROOT_DICTORS_DONE_AUDIOS_PATH)]
-        if dictor_name not in dictors_dirs:
-            y_disk.mkdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}')
-        text_type_dirs = [ttd.name for ttd in y_disk.listdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}')]
-        if text_type not in text_type_dirs:
-            y_disk.mkdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}/{text_type}')
+        if flag == 'marker':
+            txt_file = [f for f in os.listdir(files_path) if f.endswith('.txt')][0]
+            rpp_file = [f for f in os.listdir(files_path) if not f.endswith('.txt')][0]
+            dictor_name = txt_file.split('_')[0]
+            text_type = txt_file.split('_')[1]
 
-        long_df = pd.read_csv(LONG_AUDIOS_CSV)
-        txt_file = [f for f in os.listdir(files_path) if f.endswith('.txt')][0]
-        long_df.loc[
-            long_df[
-                'file_name'] == f'{dictor_name}/{text_type}/{"_".join(txt_file.split("_")[2:]).replace(".txt", ".wav")}',
-            'status'] = 'done'
-        long_df.to_csv(LONG_AUDIOS_CSV, index=False)
-        with open(os.path.join(files_path, txt_file), encoding='utf-8') as f:
-            tmp_texts = f.readlines()
-            marked_texts = [el for el in tmp_texts if el != '\n']
-        for file in [f for f in os.listdir(files_path) if f.endswith('.wav')]:
-            marker_df = pd.read_csv(MARKERS_SOUND_CSV)
+            long_df = pd.read_csv(LONG_AUDIOS_CSV)
+            long_df.loc[
+                long_df[
+                    'file_name'] == f'{dictor_name}/{text_type}/{"_".join(txt_file.split("_")[2:]).replace(".txt", ".wav")}',
+                'status'] = 'done'
+            long_df.to_csv(LONG_AUDIOS_CSV, index=False)
 
-            filename_elements = file.split('_')
-            dictor_dir = filename_elements[0]
-            text_type = filename_elements[1]
-            dictor_name = filename_elements[2]
+            with open(os.path.join(files_path, txt_file), encoding='utf-8') as f:
+                tmp_texts = f.readlines()
+                marked_texts = [el for el in tmp_texts if el != '\n']
+            for string in marked_texts:
+                marker_df = pd.read_csv(MARKERS_SOUND_CSV)
+                try:
+                    new_idx = int(string.split(' ')[0])
+                except:
+                    new_idx = int(string.split('\t')[0])
+                csv_filename = f'{dictor_name}/{text_type}/{dictor_name}_{new_idx}.wav'
+                try:
+                    if string != marker_df.loc[marker_df['file_name'] == csv_filename, 'original_text'].tolist()[0]:
+                        marker_df.loc[marker_df['file_name'] == csv_filename, 'marked_text'] = string
+                except:
+                    pass
 
-            cut_num = int(filename_elements[-1].split('.')[0])
-            indxs = filename_elements[-2]
+                logging(message, txt_file)
 
-            if re.findall('\d', filename_elements[3]):
-                status = ''
-            else:
-                status = filename_elements[3]
+                marker_df.loc[marker_df['file_name'] == csv_filename, 'done_date'] = upload_date
+                marker_df.loc[marker_df['file_name'] == csv_filename, 'status'] = 'done'
+                marker_df.loc[marker_df['file_name'] == csv_filename, 'curator_status'] = 'На проверке'
 
-            st_idx = int(indxs.split('-')[0])
-            txt_idx = cut_num - 1
-            new_idx = st_idx + txt_idx
+                marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
 
-            csvfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
-            try:
-                if marked_texts[txt_idx] != \
-                        marker_df.loc[marker_df['file_name'] == csvfilename, 'original_text'].tolist()[0]:
-                    marker_df.loc[marker_df['file_name'] == csvfilename, 'marked_text'] = marked_texts[txt_idx]
-                    if status:
-                        status += '_corrected'
-                    else:
-                        status += 'corrected'
-            except:
-                pass
-            if status:
-                ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}_{status}.wav'
-            else:
-                ydfilename = f'{dictor_dir}/{text_type}/{dictor_name}_{new_idx}.wav'
+            yd_filename = f'{dictor_name}/{text_type}/{rpp_file}'
+            out_str += upload_to_yd('marker_audio_project', os.path.join(files_path, rpp_file), yd_filename)[0]
+            timetable = gc.open(DICTORS_TABLE_NAME)
+            time_worksheet = timetable.worksheet(DICTORS_WORKSHEET_NAME)
+            set_with_dataframe(time_worksheet, marker_df)
+            if not out_str:
+                out_str = 'Файл с проектом загружен'
+        else:
+            os.makedirs(files_path, exist_ok=True)
+            with zipfile.ZipFile(file_path) as zf:
+                zf.extractall(files_path)
 
-            logging(message, file)
-            out_str += upload_to_yd(project_name, os.path.join(files_path, file), ydfilename)[0]
-            logging(message, f'{ydfilename} загружен успешно')
-            
-            marker_df.loc[marker_df['file_name'] == csvfilename, 'done_date'] = upload_date
-            marker_df.loc[marker_df['file_name'] == csvfilename, 'status'] = 'done'
-            marker_df.loc[marker_df['file_name'] == csvfilename, 'curator_status'] = 'На проверке'
-            marker_df.loc[marker_df['file_name'] == csvfilename, 'file_name'] = ydfilename
+            filename = os.listdir(files_path)[0]
+            dictor_name = filename.split('_')[0]
+            text_type = filename.split('_')[1]
+            dictors_dirs = [dd.name for dd in y_disk.listdir(YD_ROOT_DICTORS_DONE_AUDIOS_PATH)]
+            if dictor_name not in dictors_dirs:
+                y_disk.mkdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}')
+            text_type_dirs = [ttd.name for ttd in y_disk.listdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}')]
+            if text_type not in text_type_dirs:
+                y_disk.mkdir(f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{dictor_name}/{text_type}')
 
-            marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
-        timetable = gc.open(DICTORS_TABLE_NAME)
-        time_worksheet = timetable.worksheet(DICTORS_WORKSHEET_NAME)
-        set_with_dataframe(time_worksheet, marker_df)
-        if not out_str:
-            out_str = 'Все файлы загружены'
+            for file in os.listdir(files_path):
+                marker_df = pd.read_csv(MARKERS_SOUND_CSV)
+
+                filename_elements = file.split('_')
+                cut_num = int(filename_elements[-1].split('.')[0])
+                indxs = filename_elements[-2]
+
+                if re.findall('\d', filename_elements[3]):
+                    status = ''
+                else:
+                    status = filename_elements[3]
+
+                st_idx = int(indxs.split('-')[0])
+                txt_idx = cut_num - 1
+                new_idx = st_idx + txt_idx
+
+                csv_filename = f'{dictor_name}/{text_type}/{dictor_name}_{new_idx}.wav'
+                try:
+                    if type(marker_df.loc[marker_df['file_name'] == csv_filename, 'marked_text'].tolist()[0]) == float:
+                        if status:
+                            status += '_corrected'
+                        else:
+                            status += 'corrected'
+                except:
+                    pass
+
+                if status:
+                    ydfilename = f'{dictor_name}/{text_type}/{dictor_name}_{new_idx}_{status}.wav'
+                else:
+                    ydfilename = f'{dictor_name}/{text_type}/{dictor_name}_{new_idx}.wav'
+
+                logging(message, file)
+                out_str += upload_to_yd(project_name, os.path.join(files_path, file), ydfilename)[0]
+                logging(message, f'{ydfilename} загружен успешно')
+
+                marker_df.loc[marker_df['file_name'] == csv_filename, 'file_name'] = ydfilename
+                marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
+
+            timetable = gc.open(DICTORS_TABLE_NAME)
+            time_worksheet = timetable.worksheet(DICTORS_WORKSHEET_NAME)
+            set_with_dataframe(time_worksheet, marker_df)
+            if not out_str:
+                out_str = 'Все файлы загружены'
     return out_str
+
+
+def get_long_audios_names(dictor_name, text_type):
+    long_df = pd.read_csv(LONG_AUDIOS_CSV)
+    all_long_audios_names = long_df[long_df['status']=='done']['file_name'].tolist()
+    long_audios_names = [name for name in all_long_audios_names if dictor_name in name and text_type in name]
+    return long_audios_names
+
+
+def insert_curator_id(long_audio_name, curator_id):
+    long_df = pd.read_csv(LONG_AUDIOS_CSV)
+    long_df.loc[long_df['file_name'] == long_audio_name, 'status'] = curator_id
+    long_df.to_csv(LONG_AUDIOS_CSV, index=False)
