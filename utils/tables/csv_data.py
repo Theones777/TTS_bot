@@ -208,7 +208,7 @@ def enter_audio_data(message, user_id, project_name, flag, file_path=''):
 
                 marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
 
-            yd_filename = f'{dictor_name}/{text_type}/{rpp_file}'
+            yd_filename = f'{dictor_name}/{text_type}/{rpp_file.split(".")[0]}.rpp'
             out_str += upload_to_yd('marker_audio_project', os.path.join(files_path, rpp_file), yd_filename)[0]
             timetable = gc.open(DICTORS_TABLE_NAME)
             time_worksheet = timetable.worksheet(DICTORS_WORKSHEET_NAME)
