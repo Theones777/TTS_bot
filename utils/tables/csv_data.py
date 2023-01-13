@@ -102,7 +102,6 @@ def get_curator_words(message, curator_id, project_name):
 def get_audio_data(message, user_id):
     project_name = message.text
     today = datetime.datetime.today().isoformat(sep=" ").split(' ')[0]
-    arc_path = os.path.join(TMP_ARC_PATH, f'{today}_{user_id}.zip')
 
     if project_name == AVAIL_AUDIO_PROJECTS_NAMES[0]:
         long_df = pd.read_csv(LONG_AUDIOS_CSV)
@@ -112,13 +111,15 @@ def get_audio_data(message, user_id):
         long_df.to_csv(LONG_AUDIOS_CSV, index=False)
         os.makedirs(os.path.join(TMP_DOWNLOAD_PATH, user_id), exist_ok=True)
 
+        dictor_name = wav_path.split('/')[0]
+        text_type = wav_path.split('/')[1]
+        wav_name = wav_path.split('/')[2]
+        logging(message, wav_path)
+        download_audio_files_from_yd(wav_path, user_id, dictor_name, text_type, wav_name)
+        logging(message, 'Загрузка успешна')
+        arc_path = os.path.join(TMP_ARC_PATH, f'{wav_name}_{user_id}.zip')
+
         with zipfile.ZipFile(arc_path, 'w') as myzip:
-            dictor_name = wav_path.split('/')[0]
-            text_type = wav_path.split('/')[1]
-            wav_name = wav_path.split('/')[2]
-            logging(message, wav_path)
-            download_audio_files_from_yd(wav_path, user_id, dictor_name, text_type, wav_name)
-            logging(message, 'Загрузка успешна')
             myzip.write(os.path.join(TMP_DOWNLOAD_PATH, user_id, dictor_name, text_type, wav_name),
                         arcname=f'{dictor_name}_{text_type}_{wav_name}')
 
@@ -189,10 +190,7 @@ def enter_audio_data(message, user_id, project_name, flag, file_path=''):
                 marked_texts = [el for el in tmp_texts if el != '\n']
             for string in marked_texts:
                 marker_df = pd.read_csv(MARKERS_SOUND_CSV)
-                try:
-                    new_idx = int(string.split(' ')[0])
-                except:
-                    new_idx = int(string.split('\t')[0])
+                new_idx = int(''.join(re.findall('\d', string[:6])))
                 csv_filename = f'{dictor_name}/{text_type}/{dictor_name}_{new_idx}.wav'
                 try:
                     if string != marker_df.loc[marker_df['file_name'] == csv_filename, 'original_text'].tolist()[0]:
@@ -208,7 +206,8 @@ def enter_audio_data(message, user_id, project_name, flag, file_path=''):
 
                 marker_df.to_csv(MARKERS_SOUND_CSV, index=False)
 
-            yd_filename = f'{dictor_name}/{text_type}/{rpp_file.split(".")[0]}.rpp'
+            yd_rpp_name = '_'.join(rpp_file.split('_')[2:]).replace('.RPP', '.rpp')
+            yd_filename = f'{dictor_name}/{text_type}/{yd_rpp_name}'
             out_str += upload_to_yd('marker_audio_project', os.path.join(files_path, rpp_file), yd_filename)[0]
             timetable = gc.open(DICTORS_TABLE_NAME)
             time_worksheet = timetable.worksheet(DICTORS_WORKSHEET_NAME)
