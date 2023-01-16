@@ -6,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.types import BotCommand
 
-from utils.variables import TMP_DOWNLOAD_PATH, TMP_ARC_PATH
+from utils.variables import TMP_DOWNLOAD_PATH, TMP_ARC_PATH, SUM_PROFILES
 
 
 async def set_commands(bot: Bot):
@@ -19,9 +19,9 @@ async def set_commands(bot: Bot):
 
 async def cmd_cancel(message: types.Message, state: FSMContext):
     await state.finish()
+    user_id = SUM_PROFILES[str(message.from_user.id)]
     try:
-        shutil.rmtree(TMP_DOWNLOAD_PATH)
-        os.makedirs(TMP_DOWNLOAD_PATH, exist_ok=True)
+        shutil.rmtree(os.path.join(TMP_DOWNLOAD_PATH, user_id))
     except:
         pass
     try:
