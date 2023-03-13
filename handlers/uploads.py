@@ -30,7 +30,7 @@ async def project_chosen(message: types.Message, state: FSMContext):
                              "\n\nЕсли омографов не найдено либо слово не является омографом - нажмите на необходимую "
                              "кнопку",
                              reply_markup=keyboard)
-    elif message.text == AVAIL_TXT_PROJECTS_NAMES[1:]:
+    elif message.text in AVAIL_TXT_PROJECTS_NAMES[1:]:
         await message.answer("Теперь загрузите файлы (поставьте галочку 'Группировать')",
                              reply_markup=types.ReplyKeyboardRemove())
     elif message.text == AVAIL_AUDIO_PROJECTS_NAMES[0]:
@@ -82,12 +82,12 @@ async def upload_docs(message: types.Message, state: FSMContext):
 
     download_file_path = os.path.join(TMP_DOWNLOAD_PATH, marker_id, file_name)
     os.makedirs(os.path.join(TMP_DOWNLOAD_PATH, marker_id), exist_ok=True)
-    # server_file = await bot.get_file(message.document.file_id)
-    # server_path = server_file.file_path
-    # cmd1 = f'docker cp 10fd0db6c46c:{server_path} {download_file_path}'
-    # cmd2 = f'docker exec KononovTGServer rm -rf {server_path}'
-    # os.system(cmd1)
-    await message.document.download(destination_file=download_file_path)
+    server_file = await bot.get_file(message.document.file_id)
+    server_path = server_file.file_path
+    cmd1 = f'docker cp 10fd0db6c46c:{server_path} {download_file_path}'
+    cmd2 = f'docker exec KononovTGServer rm -rf {server_path}'
+    os.system(cmd1)
+    # await message.document.download(destination_file=download_file_path)
 
     if project_name in AVAIL_TXT_PROJECTS_NAMES:
         await state.update_data({'marker_id': marker_id})
@@ -102,7 +102,7 @@ async def upload_docs(message: types.Message, state: FSMContext):
             await message.answer(check_report, reply_markup=keyboard)
         except:
             await message.answer('Слишком много ошибок', reply_markup=keyboard)
-        # os.system(cmd2)
+        os.system(cmd2)
 
 
 async def check_files(message: types.Message, state: FSMContext):
@@ -141,8 +141,11 @@ async def confirm_upload(message: types.Message, state: FSMContext):
         await message.answer(out_str, reply_markup=types.ReplyKeyboardRemove())
     else:
         await message.answer('Загрузка отменена', reply_markup=types.ReplyKeyboardRemove())
-
-    shutil.rmtree(os.path.join(TMP_DOWNLOAD_PATH, marker_id))
+    
+    try:
+        shutil.rmtree(os.path.join(TMP_DOWNLOAD_PATH, marker_id))
+    except:
+        pass
 
     await state.finish()
 

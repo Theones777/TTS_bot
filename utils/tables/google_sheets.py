@@ -37,6 +37,7 @@ def insert_curator_info(info_to_insert, handle_mistakes_num, upload_date, page_m
         upload_date = '0' + upload_date
     if len(upload_date.split('.')[1]) == 1:
         upload_date = '.'.join([upload_date.split('.')[0], '0' + upload_date.split('.')[1], upload_date.split('.')[2]])
+    
     cell = worksheet.find(upload_date)
     mistakes_num_col = CURATORS_COORDINATES['handle_num_mistakes_col']
     mistakes_col = CURATORS_COORDINATES['handle_mistakes_col']
@@ -54,11 +55,12 @@ def get_marker_id(word, project_name):
     if project_name == AVAIL_CURATORS_PROJECTS[0]:
         sh = gc.open(HOMO_TABLE_NAME)
         coordinates_table = HOMOGRAPHS_COORDINATES
+        worksheet = sh.worksheet("homograph_data1")
     else:
         sh = gc.open(YOMO_TABLE_NAME)
         coordinates_table = YOMOGRAPHS_COORDINATES
-
-    worksheet = sh.get_worksheet(0)
+        worksheet = sh.get_worksheet(0)
+        
     time.sleep(1)
     for tmp_cell in worksheet.findall(word):
         if tmp_cell.col == coordinates_table['main_words_col']:
@@ -80,7 +82,7 @@ def get_text_markup_data(message, marker_id, project_name):
     arc_path = os.path.join(TMP_ARC_PATH, f'{today}_{marker_id}.zip')
     if project_name == AVAIL_TXT_PROJECTS_NAMES[0]:
         sh = gc.open(HOMO_TABLE_NAME)
-        worksheet = sh.get_worksheet(0)
+        worksheet = sh.worksheet("homograph_data1")
         time.sleep(1)
         with zipfile.ZipFile(arc_path, 'w') as myzip:
             for i in range(words_num):
@@ -105,7 +107,7 @@ def get_text_markup_data(message, marker_id, project_name):
 
     elif project_name == AVAIL_TXT_PROJECTS_NAMES[1]:
         sh = gc.open(HOMO_TABLE_NAME)
-        worksheet = sh.get_worksheet(0)
+        worksheet = sh.worksheet("homograph_data1")
         time.sleep(1)
         start_row_num = 3
         with zipfile.ZipFile(arc_path, 'w') as myzip:
@@ -208,7 +210,7 @@ def enter_markup_data(message, marker_id, project_name, sample_nums_info):
 
     if project_name == AVAIL_TXT_PROJECTS_NAMES[0]:
         sh = gc.open(HOMO_TABLE_NAME)
-        worksheet = sh.get_worksheet(0)
+        worksheet = sh.worksheet("homograph_data1")
         time.sleep(1)
         prev_marker_id = None
         for sample, sample_count in sample_nums_info.items():
@@ -237,7 +239,7 @@ def enter_markup_data(message, marker_id, project_name, sample_nums_info):
 
     elif project_name == AVAIL_TXT_PROJECTS_NAMES[1]:
         sh = gc.open(HOMO_TABLE_NAME)
-        worksheet = sh.get_worksheet(0)
+        worksheet = sh.worksheet("homograph_data1")
         time.sleep(1)
         for sample, sample_count in sample_nums_info.items():
             try:
@@ -335,7 +337,7 @@ def insert_null_words(project_name, null_words, marker_id, insert_value):
     row = 0
     if project_name in AVAIL_TXT_PROJECTS_NAMES[:2]:
         sh = gc.open(HOMO_TABLE_NAME)
-        worksheet = sh.get_worksheet(0)
+        worksheet = sh.worksheet("homograph_data1")
         for word in null_words:
             try:
                 for tmp_cell in worksheet.findall(word.strip()):

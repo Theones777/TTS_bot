@@ -73,14 +73,14 @@ async def curator_file_upload(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     project_name = user_data['chosen_project']
     server_file = await bot.get_file(message.document.file_id)
-    # cmd1 = f'docker cp 10fd0db6c46c:{server_file.file_path} {download_file_path}'
-    # cmd2 = f'docker exec KononovTGServer rm -rf {server_file.file_path}'
-    # os.system(cmd1)
-    await message.document.download(destination_file=download_file_path)
+    cmd1 = f'docker cp 10fd0db6c46c:{server_file.file_path} {download_file_path}'
+    cmd2 = f'docker exec KononovTGServer rm -rf {server_file.file_path}'
+    os.system(cmd1)
+    # await message.document.download(destination_file=download_file_path)
     out_str = upload_to_yd(project_name, download_file_path, file_name)[0]
     await message.answer(out_str, reply_markup=types.ReplyKeyboardRemove())
     await state.finish()
-    # os.system(cmd2)
+    os.system(cmd2)
 
 
 async def word_inserted(message: types.Message, state: FSMContext):
@@ -157,11 +157,23 @@ async def long_audio_project_chosen(message: types.Message, state: FSMContext):
     filename = f'{dictor_name}_{text_type}_{rpp_name}'
     file_path = os.path.join(TMP_DOWNLOAD_PATH, curator_id, filename)
     os.makedirs(os.path.join(TMP_DOWNLOAD_PATH, curator_id), exist_ok=True)
-    simple_download(f'{YD_DICTORS_PROJECTS_PATH}/{dictor_name}/{text_type}/{rpp_name}', file_path)
-    file = InputFile(file_path)
-    await message.reply_document(file, reply=False)
+    try:
+        simple_download(f'{YD_DICTORS_PROJECTS_PATH}/{dictor_name}/{text_type}/{rpp_name}', file_path)
+    except:
+        rpp_name = rpp_name.replace('.rpp', '.aup3')
+        simple_download(f'{YD_DICTORS_PROJECTS_PATH}/{dictor_name}/{text_type}/{rpp_name}', file_path)
+    
+    file1 = InputFile(file_path)
+    await message.reply_document(file1, reply=False)
     os.remove(file_path)
     insert_curator_id(long_audio_name, curator_id)
+    if dictor_name == 'Artem':
+        try:
+            flname = f"{text_type}_{long_audio_name.split('/')[-1].replace('wav', 'txt')}"
+            file2 = InputFile(f'/home/akononov/work_dir/TTS_bot/utils_data/Artem_metki/{flname}')
+            await message.reply_document(file2, reply=False)
+        except:
+            pass
     await state.finish()
 
 
@@ -171,18 +183,21 @@ async def audio_archive_upload(message: types.Message, state: FSMContext):
     file_name = message.document.file_name
     download_file_path = os.path.join(TMP_DOWNLOAD_PATH, curator_id, file_name)
     os.makedirs(os.path.join(TMP_DOWNLOAD_PATH, curator_id), exist_ok=True)
-    # server_file = await bot.get_file(message.document.file_id)
-    # cmd1 = f'docker cp 10fd0db6c46c:{server_file.file_path} {download_file_path}'
-    # cmd2 = f'docker exec KononovTGServer rm -rf {server_file.file_path}'
-    # os.system(cmd1)
-    await message.document.download(destination_file=download_file_path)
+    server_file = await bot.get_file(message.document.file_id)
+    cmd1 = f'docker cp 10fd0db6c46c:{server_file.file_path} {download_file_path}'
+    cmd2 = f'docker exec KononovTGServer rm -rf {server_file.file_path}'
+    os.system(cmd1)
+    # await message.document.download(destination_file=download_file_path)
 
     await message.answer('Загрузка начата...', reply_markup=types.ReplyKeyboardRemove())
     out_str = enter_audio_data(message, curator_id, AVAIL_AUDIO_PROJECTS_NAMES[0],
                                flag='curator', file_path=download_file_path)
-    await message.answer(out_str, reply_markup=types.ReplyKeyboardRemove())
+    try:
+        await message.answer(out_str, reply_markup=types.ReplyKeyboardRemove())
+    except:
+        await message.answer('Файлы загружены', reply_markup=types.ReplyKeyboardRemove())
     shutil.rmtree(os.path.join(TMP_DOWNLOAD_PATH, curator_id))
-    # os.system(cmd2)
+    os.system(cmd2)
 
 
 def register_handlers_curators(dp: Dispatcher):

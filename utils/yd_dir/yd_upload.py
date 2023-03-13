@@ -5,10 +5,10 @@ import yadisk
 
 from utils.checks.check import convert_to_utf8
 from utils.log import logging
-from utils.variables import AVAIL_TXT_PROJECTS_NAMES, YD_HARD_HOMOGRAPHS_PATH, YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH, \
+from utils.variables import AVAIL_TXT_PROJECTS_NAMES, YD_DICTORS_MARKS_UNCUTTED_PATH, YD_HARD_HOMOGRAPHS_PATH, YD_DONE_NOT_ACCEPTED_HOMOGRAPHS_PATH, \
     YD_DONE_NOT_ACCEPTED_YOMOGRAPHS_PATH, YD_HARD_YOMOGRAPHS_PATH, TMP_DOWNLOAD_PATH, USER_BACKUP_PATH, \
     YD_DONE_ACCEPTED_HOMOGRAPHS_PATH, YD_DONE_ACCEPTED_YOMOGRAPHS_PATH, AVAIL_AUDIO_PROJECTS_NAMES, \
-    YD_ROOT_DICTORS_DONE_AUDIOS_PATH, YD_ROOT_DICTORS_RESERVE_AUDIOS_PATH, AVAIL_CURATORS_PROJECTS, \
+    YD_ROOT_DICTORS_RESERVE_AUDIOS_PATH, AVAIL_CURATORS_PROJECTS, \
     YD_DICTORS_PROJECTS_PATH
 from utils.yd_dir.yd_init import y_disk
 
@@ -63,7 +63,7 @@ def upload_to_yd(project_name, download_file_path, file_name):
     elif project_name == AVAIL_CURATORS_PROJECTS[1]:
         dones_path = f'{YD_DONE_ACCEPTED_YOMOGRAPHS_PATH}/{file_name}'
     elif project_name == AVAIL_AUDIO_PROJECTS_NAMES[0]:
-        dones_path = f'{YD_ROOT_DICTORS_DONE_AUDIOS_PATH}/{file_name}'
+        dones_path = f'{YD_DICTORS_MARKS_UNCUTTED_PATH}/{file_name}'
     elif project_name == 'marker_audio_project':
         dones_path = f'{YD_DICTORS_PROJECTS_PATH}/{file_name}'
 
@@ -81,5 +81,5 @@ def upload_to_yd(project_name, download_file_path, file_name):
         os.remove(download_file_path)
         status = 0
     if not out_str:
-        out_str = 'Успешно'
+        out_str = 'Успешно\n'
     return out_str,  status
