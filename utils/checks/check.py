@@ -40,7 +40,9 @@ def check_file(path_file_markup, filename, flag):
                 if '?' in proposal and '*' not in proposal:
                     errors.append(f'нет спецсимвола в вопросительном предложении: {proposal}')
             for word in string.split(' '):
-                if re.findall(vowels, word) and '+' not in word:
+                if '+' in word and word[word.index('+')+1] not in vowels:
+                    errors.append(f'ударение не перед гласной: {word}')
+                if len(re.findall(vowels, word)) > 1 and '+' not in word:
                     errors.append(f'нет ударения в слове: {word}')
 
         if len(string.strip()) > 0:
