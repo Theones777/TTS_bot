@@ -57,7 +57,7 @@ async def target_chosen(message: types.Message, state: FSMContext):
         await state.set_state(CuratorsChecks.waiting_for_archive.state)
         await message.answer('Теперь загрузите файл меток', reply_markup=types.ReplyKeyboardRemove())
     elif target_name == CURATORS_BUTTONS[3]:
-        await message.answer("Загрузка архива", reply_markup=types.ReplyKeyboardRemove())
+        await message.answer("Загрузка архива...", reply_markup=types.ReplyKeyboardRemove())
         arc_path = get_audio_for_text_check(SUM_PROFILES[str(message.from_user.id)])
         arc = InputFile(arc_path)
         await message.reply_document(arc, reply_markup=types.ReplyKeyboardRemove(), reply=False)
