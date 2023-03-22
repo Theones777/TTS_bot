@@ -356,3 +356,38 @@ def insert_curator_id(long_audio_name, curator_id):
     long_df = pd.read_csv(LONG_AUDIOS_CSV)
     long_df.loc[long_df['file_name'] == long_audio_name, 'status'] = curator_id
     long_df.to_csv(LONG_AUDIOS_CSV, index=False)
+
+
+def get_audio_for_text_check(curator_id):
+    long_df = pd.read_csv(LONG_AUDIOS_CSV)
+    tmp_df = long_df[long_df['text_check']=='waiting']
+    file_name = tmp_df.iloc[0, 0]
+    dictor = file_name.split('/')[0]
+    text_type = file_name.split('/')[1]
+
+    long_df.loc[long_df['file_name'] == file_name, 'text_check'] = curator_id
+    long_df.to_csv(LONG_AUDIOS_CSV, index=False)
+
+    i1 = int(file_name.split('_')[-1].split('-')[0])
+    i2 = int(file_name.split('_')[-1].split('-')[-1].split('.')[0])
+    arc_path = os.path.join(TMP_ARC_PATH, f'{file_name}_{curator_id}.zip')
+
+    with zipfile.ZipFile(arc_path, 'w') as myzip:
+        for i in range(i2 - i1 + 1):
+            try:
+                sample_name = f'{dictor}_{i1+i}.wav'
+                simple_download(f'/cooperation/dictors/marked/{dictor}/{text_type}/{sample_name}',
+                                os.path.join(TMP_ARC_PATH, f'{dictor}_{text_type}_{sample_name}'))
+            except:
+                try:
+                    sample_name = f'{dictor}_{i1 + i}_corrected.wav'
+                    simple_download(f'/cooperation/dictors/marked/{dictor}/{text_type}/{sample_name}',
+                                    os.path.join(TMP_ARC_PATH, f'{dictor}_{text_type}_{sample_name}'))
+                except:
+                    pass
+
+            myzip.write(os.path.join(TMP_ARC_PATH, f'{dictor}_{text_type}_{sample_name}'),
+                        arcname=f'{dictor}_{text_type}_{sample_name}')
+            os.remove(os.path.join(TMP_ARC_PATH, f'{dictor}_{text_type}_{sample_name}'))
+
+    return arc_path

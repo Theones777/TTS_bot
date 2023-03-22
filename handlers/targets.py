@@ -1,8 +1,12 @@
+import os
+
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
+from aiogram.types import InputFile
 
 from utils.log import logging
 from utils.states import *
+from utils.tables.csv_data import get_audio_for_text_check
 from utils.variables import AVAIL_TARGET_NAMES, AVAIL_TXT_PROJECTS_NAMES, CURATORS_PROFILES, SUM_PROFILES, \
     CURATORS_BUTTONS, MARKERS_PROFILES, AVAIL_AUDIO_PROJECTS_NAMES, AVAIL_CURATORS_PROJECTS, DICTORS_NAMES
 
@@ -52,6 +56,13 @@ async def target_chosen(message: types.Message, state: FSMContext):
     elif target_name == CURATORS_BUTTONS[2]:
         await state.set_state(CuratorsChecks.waiting_for_archive.state)
         await message.answer('Теперь загрузите файл меток', reply_markup=types.ReplyKeyboardRemove())
+    elif target_name == CURATORS_BUTTONS[3]:
+        await message.answer("Загрузка архива", reply_markup=types.ReplyKeyboardRemove())
+        arc_path = get_audio_for_text_check(SUM_PROFILES[str(message.from_user.id)])
+        arc = InputFile(arc_path)
+        await message.reply_document(arc, reply_markup=types.ReplyKeyboardRemove(), reply=False)
+        os.remove(arc_path)
+        await state.finish()
 
 
 def register_handlers_target(dp: Dispatcher):
