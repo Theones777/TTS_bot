@@ -23,7 +23,7 @@ def check_file(path_file_markup, filename, flag):
     for string in texts:
         num_samples += 1
         errors = [str(idx_string_in_file)]
-        if flag == 'text':
+        if flag == 'txt':
             if filename.split('.')[0] not in string.strip().lower():
                 errors.append('нужный о/ёмограф не найден')
             if string not in without_duplicates:
