@@ -1,6 +1,8 @@
+import pandas as pd
+
 from utils.tables.google_sheets import get_marker_id, insert_curator_info
 from utils.log import logging
-from utils.variables import SUM_PROFILES
+from utils.variables import SUM_PROFILES, LONG_AUDIOS_CSV
 from utils.yd_dir.yd_download import get_text
 
 
@@ -64,3 +66,20 @@ def get_tg_user_id(marker_id):
     for key, value in SUM_PROFILES.items():
         if value == marker_id:
             return int(key)
+
+
+def check_metki(file_name, download_file_path):
+    df = pd.read_csv(LONG_AUDIOS_CSV)
+    nfn = file_name.replace('_', '/', 2).replace('.txt', '.wav')
+    i1 = int(file_name.split('_')[-1].split('-')[0])
+    i2 = int(file_name.split('_')[-1].split('-')[-1].split('.')[0])
+
+    if len(df[df['file_name'].str.contains(nfn)]) < 1:
+        return 'Не найдено длинное аудио с таким названием. Проверьте корректность имени файла (индексы)'
+    with open(download_file_path, encoding='utf-8') as f:
+        text = f.readlines()
+    text = [row for row in text if row.split()]
+
+    if len(text) != i2-i1+1:
+        return f'Не совпадает число строк ({len(text)}) и индексов ({i2-i1+1}).'
+    return 'Ошибок не обнаружено'

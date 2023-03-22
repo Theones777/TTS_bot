@@ -7,7 +7,7 @@ from aiogram.types import InputFile
 from aiogram.utils import markdown
 
 from utils.bot_init import bot
-from utils.checks.curators_check import enter_curator_data, get_tg_user_id
+from utils.checks.curators_check import *
 from utils.log import logging
 from utils.states import CuratorsChecks
 from utils.tables.csv_data import get_curator_words, get_specific_word, enter_audio_data, get_long_audios_names, \
@@ -185,19 +185,38 @@ async def audio_archive_upload(message: types.Message, state: FSMContext):
     os.makedirs(os.path.join(TMP_DOWNLOAD_PATH, curator_id), exist_ok=True)
     server_file = await bot.get_file(message.document.file_id)
     cmd1 = f'docker cp 10fd0db6c46c:{server_file.file_path} {download_file_path}'
-    cmd2 = f'docker exec KononovTGServer rm -rf {server_file.file_path}'
+    await state.update_data(cmd2=f'docker exec KononovTGServer rm -rf {server_file.file_path}')
+    await state.update_data(dfp=download_file_path)
     os.system(cmd1)
     # await message.document.download(destination_file=download_file_path)
 
-    await message.answer('Загрузка начата...', reply_markup=types.ReplyKeyboardRemove())
-    out_str = enter_audio_data(message, curator_id, AVAIL_AUDIO_PROJECTS_NAMES[0],
-                               flag='curator', file_path=download_file_path)
-    try:
-        await message.answer(out_str, reply_markup=types.ReplyKeyboardRemove())
-    except:
-        await message.answer('Файлы загружены', reply_markup=types.ReplyKeyboardRemove())
-    shutil.rmtree(os.path.join(TMP_DOWNLOAD_PATH, curator_id))
+    await state.set_state(CuratorsChecks.waiting_metki_check_confirm.state)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for button in ['Подтвердить загрузку', 'Отменить загрузку']:
+        keyboard.add(button)
+    await message.answer(check_metki(file_name, download_file_path), reply_markup=keyboard)
+
+
+async def metki_check_confirm(message: types.Message, state: FSMContext):
+    user_data = await state.get_data()
+    cmd2 = user_data['cmd2']
+    download_file_path = user_data['dfp']
+    curator_id = SUM_PROFILES[str(message.from_user.id)]
+
+    if message.text == 'Подтвердить загрузку':
+        await message.answer('Загрузка начата...', reply_markup=types.ReplyKeyboardRemove())
+        out_str = enter_audio_data(message, curator_id, AVAIL_AUDIO_PROJECTS_NAMES[0],
+                                   flag='curator', file_path=download_file_path)
+        try:
+            await message.answer(out_str, reply_markup=types.ReplyKeyboardRemove())
+        except:
+            await message.answer('Файлы загружены', reply_markup=types.ReplyKeyboardRemove())
+    else:
+        await message.answer('Загрузка отменена', reply_markup=types.ReplyKeyboardRemove())
+
     os.system(cmd2)
+    shutil.rmtree(os.path.join(TMP_DOWNLOAD_PATH, curator_id))
+    await state.finish()
 
 
 def register_handlers_curators(dp: Dispatcher):
@@ -214,3 +233,4 @@ def register_handlers_curators(dp: Dispatcher):
     dp.register_message_handler(word_inserted, state=CuratorsChecks.waiting_for_word)
     dp.register_message_handler(specific_word_inserted, state=CuratorsChecks.waiting_for_specific_word)
     dp.register_message_handler(indexes_inserted, state=CuratorsChecks.waiting_for_indexes)
+    dp.register_message_handler(metki_check_confirm, state=CuratorsChecks.waiting_metki_check_confirm)

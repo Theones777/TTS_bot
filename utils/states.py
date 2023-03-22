@@ -30,6 +30,7 @@ class CuratorsChecks(StatesGroup):
     waiting_for_word = State()
     waiting_for_specific_word = State()
     waiting_for_indexes = State()
+    waiting_metki_check_confirm = State()
 
 
 class SoundMan(StatesGroup):

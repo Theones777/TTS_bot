@@ -51,8 +51,7 @@ async def target_chosen(message: types.Message, state: FSMContext):
         await state.set_state(CuratorsChecks.waiting_for_dictor_name.state)
     elif target_name == CURATORS_BUTTONS[2]:
         await state.set_state(CuratorsChecks.waiting_for_archive.state)
-        await message.answer('Теперь загрузите zip-архив с аудио файлами (в имени архива не должно быть пробелов)',
-                             reply_markup=types.ReplyKeyboardRemove())
+        await message.answer('Теперь загрузите файл меток', reply_markup=types.ReplyKeyboardRemove())
 
 
 def register_handlers_target(dp: Dispatcher):
