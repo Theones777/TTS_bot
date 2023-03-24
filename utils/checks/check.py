@@ -44,6 +44,8 @@ def check_file(path_file_markup, filename, flag):
                     errors.append(f'ударение не перед гласной: {word}')
                 if len(re.findall(vowels, word)) > 1 and '+' not in word:
                     errors.append(f'нет ударения в слове: {word}')
+                if len(re.findall('\+', word)) > 1:
+                    errors.append(f'возможно лишнее ударение: {word}')
 
         if len(string.strip()) > 0:
             if 'none_audio' not in string.strip():
